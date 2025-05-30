@@ -3,29 +3,26 @@ from pysnmp.hlapi.v1arch.asyncio import (
     SnmpDispatcher,
     CommunityData,
     UdpTransportTarget,
-    ContextData,
     ObjectType,
     ObjectIdentity,
     getCmd
 )
 
-# SNMP server configuration
-SNMP_SERVER = "192.168.56.4"  # Replace with your SNMP server IP
+# SNMP server config
+SNMP_SERVER = "192.168.56.4"
 SNMP_PORT = 161
 COMMUNITY = "public"
 
 async def run():
-    # Perform SNMP GET operation
+    # Send SNMP GET request
     errorIndication, errorStatus, errorIndex, varBinds = await getCmd(
         SnmpDispatcher(),
         CommunityData(COMMUNITY),
         await UdpTransportTarget.create((SNMP_SERVER, SNMP_PORT)),
-        ContextData(),
-        ObjectType(ObjectIdentity('SNMPv2-MIB', 'sysDescr', 0))
-        # Add more ObjectTypes if needed, like sysUpTime, sysName, etc.
+        ObjectType(ObjectIdentity('SNMPv2-MIB', 'sysDescr', 0))  # .0 is required for scalar OIDs
     )
 
-    # Handle errors and print the result
+    # Handle and display the response
     if errorIndication:
         print(f"Error: {errorIndication}")
     elif errorStatus:
@@ -34,5 +31,5 @@ async def run():
         for varBind in varBinds:
             print(f"{varBind[0]} = {varBind[1]}")
 
-# Run the async function
+# Execute the coroutine
 asyncio.run(run())
