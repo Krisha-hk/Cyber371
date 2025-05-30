@@ -1,10 +1,19 @@
 import scapy.all as scapy
-scapy.load_contrib('ntp')
+
 from scapy.layers.dns import DNS, DNSQR
 from scapy.layers.inet import IP, UDP
-from scapy.contrib.ntp import NTP
+
 from scapy.contrib.snmp import SNMP, SNMPget, SNMPvarbind
 import time
+
+
+import random
+import time
+
+import scapy.contrib.ntp
+scapy.contrib.ntp.load_contrib("ntp")
+from scapy.contrib.ntp import NTP
+
 
 
 
