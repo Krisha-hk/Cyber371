@@ -1,7 +1,7 @@
 from scapy.all import *
 from scapy.layers.snmp import SNMP, SNMPget, SNMPvarbind
 
-SNMP_SERVER = "192.168.56.4"  # Change to your SNMP server IP
+SNMP_SERVER = "192.168.56.4"  
 COMMUNITY = "public"
 OID = "1.3.6.1.2.1.1.1.0"     # sysDescr (System Description)
 
