@@ -24,3 +24,7 @@ def measure_amplification(reflector_ip, service="DNS", port=None):
         ans.show()
     else:
         print(f"[-] No response received from {service}")
+
+if __name__ == "__main__":
+    measure_amplification("192.168.56.2", service="DNS")  
+
