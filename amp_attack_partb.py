@@ -86,7 +86,7 @@ def amp_attack(reflector, victim=None, service="DNS", port=None, timeout=5):
 # Example usage:
 
 if __name__ == "__main__":
-    # Replace these with your test IPs
+   
     reflector_ips = {
         "DNS": "192.168.56.2",
         "NTP": "192.168.56.3",
