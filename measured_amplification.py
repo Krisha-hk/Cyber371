@@ -6,7 +6,7 @@ def measure_amplification(reflector_ip, service="DNS", port=None):
         raise ValueError("Unsupported service")
 
     if service == "DNS":
-        request = IP(dst=reflector_ip)/UDP(sport=RandShort(), dport=port)/DNS(rd=1, qd=DNSQR(qname="example.com", qtype="ANY"))
+        request = IP(dst=reflector_ip)/UDP(sport=RandShort(), dport=port)/DNS(rd=1, qd=DNSQR(qname="example.com", qtype="255"))
     elif service == "NTP":
         request = IP(dst=reflector_ip)/UDP(sport=RandShort(), dport=port)/Raw(load=b'\x17\x00\x03\x2a' + b'\x00' * 4)
     elif service == "SNMP":
